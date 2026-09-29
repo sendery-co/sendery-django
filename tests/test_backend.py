@@ -18,11 +18,13 @@ class BackendTests(unittest.TestCase):
     def test_queue_serialization_preserves_key_and_data(self):
         data = {"name": "Original"}
         email = TemplateEmail(to="alex@example.com", template="welcome", data=data)
+        email.attach("invoice.pdf", b"PDF\x00bytes", "application/pdf")
         data["name"] = "Changed"
         restored = pickle.loads(pickle.dumps(email))
         with patch("sendery_django.backend.Sendery") as client:
             self.assertEqual(1, EmailBackend().send_messages([restored]))
             payload = client.return_value.send.call_args.kwargs
+        self.assertEqual(__import__("base64").b64encode(b"PDF\x00bytes").decode(), payload["attachments"][0]["content"])
         self.assertEqual(email.sendery_key, payload["idempotency_key"])
         self.assertEqual("Original", payload["data"]["name"])
 

@@ -28,7 +28,7 @@ SENDERY_API_KEY = os.environ["SENDERY_API_KEY"]
 
 ## Send an email
 
-Use `TemplateEmail` with one recipient. Its `sendery_receipt` contains the accepted email’s ID and status. Ordinary `EmailMessage` objects, attachments, and `cc` or `bcc` recipients are not supported. Set the sender in your Sendery project.
+Use `TemplateEmail` with one recipient. Its `sendery_receipt` contains the accepted email’s ID and status. Ordinary `EmailMessage` objects and `cc` or `bcc` recipients are not supported. Set the sender in your Sendery project.
 
 ```python
 from sendery_django import TemplateEmail
@@ -41,6 +41,26 @@ email = TemplateEmail(
 email.send(fail_silently=False)
 
 print(email.sendery_receipt["id"])
+```
+
+## Attachments
+
+Attach files to `TemplateEmail` with Django’s `attach()` method.
+
+Send up to 10 files totaling 5 MB. See the [attachment reference](https://sendery.co/en/docs/send-email#section-5) for supported formats and limits.
+
+```python
+from pathlib import Path
+from sendery_django import TemplateEmail
+
+email = TemplateEmail(
+    to="alex@example.com",
+    template="welcome",
+    data={"name": "Alex", "action_url": "https://example.com/start"},
+    idempotency_key="welcome-attachment-123",
+)
+email.attach("document.pdf", Path("document.pdf").read_bytes(), "application/pdf")
+email.send(fail_silently=False)
 ```
 
 ## Password resets
