@@ -16,7 +16,7 @@ pip install sendery-django
 
 ## Configure the backend
 
-Publish a `welcome` template with `name` and `action_url` variables, and create a [project API key](https://sendery.co/en/docs/authentication). Store it as `SENDERY_API_KEY` on your server. Add the backend and key to your Django settings.
+Create a [project API key](https://sendery.co/en/docs/authentication), store it as `SENDERY_API_KEY`, and add the backend to `settings.py`.
 
 ```python
 # settings.py
@@ -28,14 +28,16 @@ SENDERY_API_KEY = os.environ["SENDERY_API_KEY"]
 
 ## Send an email
 
-Use `TemplateEmail` with one recipient. Its `sendery_receipt` contains the accepted email’s ID and status. Ordinary `EmailMessage` objects and `cc` or `bcc` recipients are not supported. Set the sender in your Sendery project.
+Send a published template with `TemplateEmail`. Replace `your-template` with your published template’s key and `data` with its variables. Set the sender in your Sendery project.
+
+After sending, `sendery_receipt` contains the email’s ID and status.
 
 ```python
 from sendery_django import TemplateEmail
 
 email = TemplateEmail(
     to="alex@example.com",
-    template="welcome",
+    template="your-template",
     data={"name": "Alex", "action_url": "https://example.com/start"},
 )
 email.send(fail_silently=False)
@@ -43,11 +45,27 @@ email.send(fail_silently=False)
 print(email.sendery_receipt["id"])
 ```
 
+## Send a specific version
+
+Choose a [published template version](https://sendery.co/en/docs/send-email#section-5) to keep sending it after newer versions are published. By default, Sendery uses the latest version.
+
+```python
+from sendery_django import TemplateEmail
+
+email = TemplateEmail(
+    to="alex@example.com",
+    template="your-template",
+    data={"name": "Alex", "action_url": "https://example.com/start"},
+).version(3)
+
+email.send(fail_silently=False)
+```
+
 ## Attachments
 
 Attach files to `TemplateEmail` with Django’s `attach()` method.
 
-Send up to 10 files totaling 5 MB. See the [attachment reference](https://sendery.co/en/docs/send-email#section-5) for supported formats and limits.
+Send up to 10 files totaling 5 MB. See the [attachment reference](https://sendery.co/en/docs/send-email#section-6) for supported formats and limits.
 
 ```python
 from pathlib import Path
@@ -55,9 +73,9 @@ from sendery_django import TemplateEmail
 
 email = TemplateEmail(
     to="alex@example.com",
-    template="welcome",
+    template="your-template",
     data={"name": "Alex", "action_url": "https://example.com/start"},
-    idempotency_key="welcome-attachment-123",
+    idempotency_key="your-idempotency-key",
 )
 email.attach("document.pdf", Path("document.pdf").read_bytes(), "application/pdf")
 email.send(fail_silently=False)
@@ -65,9 +83,14 @@ email.send(fail_silently=False)
 
 ## Password resets
 
-Publish a `password-reset` template with `name` and `action_url`. Use `SenderyPasswordResetForm` with Django’s authentication views. Add these routes to your `urlpatterns` and provide Django’s standard password-reset HTML pages under `templates/registration/`. If the routes already exist, change only the reset view’s `form_class`.
+Set `SENDERY_PASSWORD_RESET_TEMPLATE` to your published template’s key, and use `SenderyPasswordResetForm` on your reset view. The form supplies `name` and Django’s reset link as `action_url`.
+
+If you already have password-reset routes, change only the form. Keep your existing confirmation pages.
 
 ```python
+# settings.py
+SENDERY_PASSWORD_RESET_TEMPLATE = "your-reset-template"
+
 # urls.py
 from django.contrib.auth import views as auth_views
 from django.urls import path
@@ -88,22 +111,22 @@ urlpatterns = [
 
 ## Retry a send
 
-Keep `fail_silently=False` to receive [`SenderyError`](https://sendery.co/en/docs/python) on API failures. The backend makes one attempt. In a [background task](https://sendery.co/en/docs/queues), save the recipient, variables, and `idempotency_key` before sending and reuse them for retries.
+A failed send raises [`SenderyError`](https://sendery.co/en/docs/python). In a [background task](https://sendery.co/en/docs/queues), retry temporary failures with the same email data and `idempotency_key`. Keep `fail_silently=False` so your task runner can detect the failure.
 
 ```python
 # Use the same saved recipient, variables, and event key on every attempt.
 email = TemplateEmail(
     to="alex@example.com",
-    template="welcome",
+    template="your-template",
     data={"name": "Alex", "action_url": "https://example.com/start"},
-    idempotency_key="welcome-123",
+    idempotency_key="your-idempotency-key",
 )
 email.send(fail_silently=False)
 ```
 
 ## More
 
-See [idempotency and retries](https://sendery.co/en/docs/idempotency) for retry conditions, delays, and reusing a key across attempts.
+Learn how to [retry emails without duplicate sends](https://sendery.co/en/docs/idempotency).
 
 ## License
 

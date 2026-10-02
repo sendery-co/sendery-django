@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Choose the password-reset template with `SENDERY_PASSWORD_RESET_TEMPLATE` in Django settings.
+- Optionally pin sends to a published template version.
+
 ## 0.1.3
 
 - See the GitHub release notes for this version.
