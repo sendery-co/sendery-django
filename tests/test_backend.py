@@ -16,6 +16,13 @@ from sendery_django.backend import EmailBackend
 
 
 class BackendTests(unittest.TestCase):
+    def test_event_uses_project_settings_and_preserves_its_payload(self):
+        from sendery_django import event
+        with patch("sendery.Sendery._request") as request:
+            event(name="listing.created", object_type="listing", object_id="42", data={"email":"alex@example.com"}).retry().send()
+            self.assertEqual("/api/v1/events", request.call_args.args[1])
+            self.assertEqual("42", __import__("json").loads(request.call_args.args[2])["object"]["id"])
+
     def test_queue_serialization_preserves_key_and_data(self):
         data = {"name": "Original"}
         email = TemplateEmail(to="alex@example.com", template="welcome", data=data)

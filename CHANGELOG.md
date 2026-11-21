@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+- Register and list event definitions with readable data fields and recipient roles for the visual trigger builder.
+
+- Add application events, stable-key retries, event status lookup, and object-data deletion. Framework integrations use the project client.
+
 ## 0.1.4
 
 - Choose the password-reset template with `SENDERY_PASSWORD_RESET_TEMPLATE` in Django settings.
