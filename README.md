@@ -36,9 +36,9 @@ After sending, `sendery_receipt` contains the email’s ID and status.
 from sendery_django import TemplateEmail
 
 email = TemplateEmail(
-    to="alex@example.com",
+    to="steven@example.com",
     template="your-template",
-    data={"name": "Alex", "action_url": "https://example.com/start"},
+    data={"name": "Steven", "action_url": "https://example.com/start"},
 )
 email.send(fail_silently=False)
 
@@ -53,9 +53,9 @@ Choose a [published template version](https://sendery.co/en/docs/send-email#sect
 from sendery_django import TemplateEmail
 
 email = TemplateEmail(
-    to="alex@example.com",
+    to="steven@example.com",
     template="your-template",
-    data={"name": "Alex", "action_url": "https://example.com/start"},
+    data={"name": "Steven", "action_url": "https://example.com/start"},
 ).version(3)
 
 email.send(fail_silently=False)
@@ -72,9 +72,9 @@ from pathlib import Path
 from sendery_django import TemplateEmail
 
 email = TemplateEmail(
-    to="alex@example.com",
+    to="steven@example.com",
     template="your-template",
-    data={"name": "Alex", "action_url": "https://example.com/start"},
+    data={"name": "Steven", "action_url": "https://example.com/start"},
     idempotency_key="your-idempotency-key",
 )
 email.attach("document.pdf", Path("document.pdf").read_bytes(), "application/pdf")
@@ -116,9 +116,9 @@ A failed send raises [`SenderyError`](https://sendery.co/en/docs/python). In a [
 ```python
 # Use the same saved recipient, variables, and event key on every attempt.
 email = TemplateEmail(
-    to="alex@example.com",
+    to="steven@example.com",
     template="your-template",
-    data={"name": "Alex", "action_url": "https://example.com/start"},
+    data={"name": "Steven", "action_url": "https://example.com/start"},
     idempotency_key="your-idempotency-key",
 )
 email.send(fail_silently=False)
@@ -143,7 +143,7 @@ from sendery_django import event
 
 receipt = event(
     name="account.created", object_type="account", object_id="842",
-    data={"email": "alex@example.com", "name": "Alex"},
+    data={"email": "steven@example.com", "name": "Steven"},
 ).retry().send()
 ```
 

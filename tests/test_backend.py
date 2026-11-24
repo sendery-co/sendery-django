@@ -19,13 +19,13 @@ class BackendTests(unittest.TestCase):
     def test_event_uses_project_settings_and_preserves_its_payload(self):
         from sendery_django import event
         with patch("sendery.Sendery._request") as request:
-            event(name="listing.created", object_type="listing", object_id="42", data={"email":"alex@example.com"}).retry().send()
+            event(name="listing.created", object_type="listing", object_id="42", data={"email":"steven@example.com"}).retry().send()
             self.assertEqual("/api/v1/events", request.call_args.args[1])
             self.assertEqual("42", __import__("json").loads(request.call_args.args[2])["object"]["id"])
 
     def test_queue_serialization_preserves_key_and_data(self):
         data = {"name": "Original"}
-        email = TemplateEmail(to="alex@example.com", template="welcome", data=data)
+        email = TemplateEmail(to="steven@example.com", template="welcome", data=data)
         email.version(3)
         email.attach("invoice.pdf", b"PDF\x00bytes", "application/pdf")
         data["name"] = "Changed"
@@ -49,10 +49,10 @@ class BackendTests(unittest.TestCase):
     def test_password_reset_keeps_django_token_and_url(self):
         from sendery_django.forms import SenderyPasswordResetForm
         from types import SimpleNamespace
-        user = SimpleNamespace(get_username=lambda: "Alex")
+        user = SimpleNamespace(get_username=lambda: "Steven")
         context = {"uid": "MTI", "token": "signed-token", "protocol": "https", "domain": "product.example", "user": user}
         with patch("sendery_django.forms.TemplateEmail") as message:
-            SenderyPasswordResetForm().send_mail("subject", "body", context, "hello@example.com", "alex@example.com")
+            SenderyPasswordResetForm().send_mail("subject", "body", context, "hello@example.com", "steven@example.com")
         self.assertEqual("https://product.example/reset/MTI/signed-token/", message.call_args.kwargs["data"]["action_url"])
         self.assertEqual("password-reset", message.call_args.kwargs["template"])
         message.return_value.send.assert_called_once()
@@ -61,12 +61,12 @@ class BackendTests(unittest.TestCase):
     def test_password_reset_uses_configured_template_and_preserves_url(self):
         from sendery_django.forms import SenderyPasswordResetForm
         from types import SimpleNamespace
-        user = SimpleNamespace(get_username=lambda: "Alex")
+        user = SimpleNamespace(get_username=lambda: "Steven")
         context = {"uid": "MTI", "token": "signed-token", "protocol": "https", "domain": "product.example", "user": user}
         with patch("sendery_django.backend.Sendery") as client:
-            SenderyPasswordResetForm().send_mail("subject", "body", context, "hello@example.com", "alex@example.com")
+            SenderyPasswordResetForm().send_mail("subject", "body", context, "hello@example.com", "steven@example.com")
             payload = client.return_value.send.call_args.kwargs
         self.assertEqual("account-recovery", payload["template"])
-        self.assertEqual("alex@example.com", payload["to"])
-        self.assertEqual({"name": "Alex", "action_url": "https://product.example/reset/MTI/signed-token/"}, payload["data"])
+        self.assertEqual("steven@example.com", payload["to"])
+        self.assertEqual({"name": "Steven", "action_url": "https://product.example/reset/MTI/signed-token/"}, payload["data"])
         client.return_value.send.assert_called_once()
