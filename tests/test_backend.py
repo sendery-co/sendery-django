@@ -16,6 +16,33 @@ from sendery_django.backend import EmailBackend
 
 
 class BackendTests(unittest.TestCase):
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_normal_django_backend_receives_the_rendered_template(self):
+        from django.core import mail
+        with patch("sendery.Sendery.render", return_value={"subject":"Hello", "html":"<p>Hello</p>", "text":"Hello"}) as render, patch("sendery.Sendery.send") as send:
+            message = TemplateEmail(to="steven@example.com", template="welcome", data={"name":"Steven"}, locale="ja").version(2)
+            message.attach("invoice.pdf", b"PDF", "application/pdf")
+            self.assertEqual(1, message.send())
+            result = mail.outbox[-1]
+            self.assertEqual("Hello", result.subject)
+            self.assertEqual("Hello", result.body)
+            self.assertEqual("<p>Hello</p>", result.alternatives[0].content)
+            self.assertEqual(1, len(result.attachments))
+            render.assert_called_once_with(template="welcome", data={"name":"Steven"}, locale="ja", version=2)
+            send.assert_not_called()
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_render_failure_never_sends_a_blank_email(self):
+        from django.core import mail
+        from sendery import SenderyError
+        mail.outbox = []
+        with patch("sendery.Sendery.render", side_effect=SenderyError(429, "render_limit_exceeded")), patch("sendery.Sendery.send") as send:
+            with self.assertRaises(SenderyError):
+                TemplateEmail(to="steven@example.com", template="welcome", data={}).send()
+            self.assertEqual([], mail.outbox)
+            send.assert_not_called()
+
+
     def test_event_uses_project_settings_and_preserves_its_payload(self):
         from sendery_django import event
         with patch("sendery.Sendery._request") as request:

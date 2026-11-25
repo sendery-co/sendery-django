@@ -22,15 +22,21 @@ Create a [project API key](https://sendery.co/en/docs/authentication), store it 
 # settings.py
 import os
 
-EMAIL_BACKEND = "sendery_django.backend.EmailBackend"
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "sendery_django.backend.EmailBackend")
 SENDERY_API_KEY = os.environ["SENDERY_API_KEY"]
 ```
+
+## Development and staging
+
+Use a **Sandbox** API key for development and staging. Sendery prevents email and workflow delivery from that key, even when the project is live. Production requires a **Live** key and live sending enabled on the project.
+
+`TemplateEmail` respects Django’s `EMAIL_BACKEND` and explicit connections. SMTP, console, and in-memory backends receive the published Sendery subject, HTML, and text. Configure SMTP with Django’s usual `EMAIL_HOST`, `EMAIL_PORT`, and authentication settings; use a test destination in development. Rendering requires an API key. Rendering is limited to 10 requests per minute per workspace and 100 / 1,000 / 5,000 / 10,000 per calendar month on Free / Starter / Business / Scale or Enterprise. Render errors stop delivery. Events use the API independently of `EMAIL_BACKEND`.
 
 ## Send an email
 
 Send a published template with `TemplateEmail`. Replace `your-template` with your published template’s key and `data` with its variables. Set the sender in your Sendery project.
 
-After sending, `sendery_receipt` contains the email’s ID and status.
+When using the Sendery backend, `sendery_receipt` contains the email’s ID and status.
 
 ```python
 from sendery_django import TemplateEmail
@@ -41,8 +47,6 @@ email = TemplateEmail(
     data={"name": "Steven", "action_url": "https://example.com/start"},
 )
 email.send(fail_silently=False)
-
-print(email.sendery_receipt["id"])
 ```
 
 ## Send a specific version
