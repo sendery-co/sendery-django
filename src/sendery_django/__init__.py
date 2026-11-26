@@ -31,13 +31,13 @@ class TemplateEmail(EmailMultiAlternatives):
         return self
 
 
-def event(*, name, object_type, object_id, data, correlation_id=None, idempotency_key=None):
+def event(*, name, object_type, object_id, data, correlation_id=None, idempotency_key=None, language=None):
     """Prepare an event using the same project credentials as Django email."""
     from django.conf import settings
     from sendery import Sendery
     return Sendery(settings.SENDERY_API_KEY, getattr(settings, "SENDERY_URL", "https://sendery.co")).event(
         name=name, object_type=object_type, object_id=object_id, data=data,
-        correlation_id=correlation_id, idempotency_key=idempotency_key,
+        correlation_id=correlation_id, idempotency_key=idempotency_key, language=language,
     )
 
 

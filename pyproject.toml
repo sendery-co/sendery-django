@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sendery-django"
-version = "0.1.8"
+version = "0.1.9"
 description = "Sendery template email client for Django"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-dependencies = ["sendery>=0.1.8,<0.2", "Django>=5.2,<5.3"]
+dependencies = ["sendery>=0.1.9,<0.2", "Django>=5.2,<5.3"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
